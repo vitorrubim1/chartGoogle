@@ -1,9 +1,23 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
-import ReactDOM from 'react-dom';
-import { Slider, TextField } from '@material-ui/core';
+import { Slider, TextField, Drawer } from '@material-ui/core';
 
 import { Chart } from 'react-google-charts';
+
+//FUNCAO DE CALCULO DO INVESTIMENTO
+function calculo(investimento) {
+  let mes = 1;
+  let arrayResultado = [];
+  while (mes <= 12) {
+    const taxa = 2.5;
+    let rendimento = (taxa / 30) * investimento;
+    let valorAtualizado = investimento + rendimento;
+    arrayResultado.push(valorAtualizado);
+    investimento = valorAtualizado;
+    mes += 1;
+  }
+  return arrayResultado;
+}
 
 function ChartApp() {
   const [valueSlider, setValueSlider] = useState(1000);
@@ -12,42 +26,33 @@ function ChartApp() {
     title: 'Gráfico Bar',
   });
 
-  //FUNCAO DE CALCULO DO INVESTIMENTO
-  function calculo(investimento) {
-    let mes = 1;
-    let arrayResultado = [];
-    while (mes <= 12) {
-      const taxa = 2.5;
-      let rendimento = (taxa / 30) * investimento;
-      let valorAtualizado = investimento + rendimento;
-      arrayResultado.push(valorAtualizado);
-      investimento = valorAtualizado;
-      mes += 1;
-    }
-    return arrayResultado;
-  }
-
-  let array = calculo(valueSlider);
-
-  const [data, setData] = useState([
-    ['Meses', 'Quantidade'],
-    ['1', array[0]],
-    ['2', array[1]],
-    ['3', array[2]],
-    ['4', array[3]],
-    ['5', array[4]],
-    ['6', array[5]],
-    ['7', array[6]],
-    ['8', array[7]],
-    ['9', array[8]],
-    ['10', array[9]],
-    ['11', array[10]],
-    ['12', array[11]],
-  ]);
+  
 
   const handleSliderValue = (event, newValue) => {
     setValueSlider(newValue);
   };
+
+  const [data, setData] = useState(() => {
+    const val = [['Meses', 'Quantidade']];
+
+    const array = calculo(valueSlider);
+    array.forEach((valor, indice) => {
+      val.push([String(indice + 1), valor])
+    })
+
+    return val;
+  });
+
+  useEffect(() => {
+    const val = [['Meses', 'Quantidade']];
+
+    const array = calculo(valueSlider);
+    array.forEach((valor, indice) => {
+      val.push([String(indice + 1), valor])
+    })
+
+    setData(val);
+  }, [valueSlider])
 
   return (
     <div className="App">
@@ -56,6 +61,7 @@ function ChartApp() {
         label="Valor"
         variant="outlined"
         value={valueSlider}
+        onChange={(e) => setValueSlider(Number(e.target.value))}
       />
 
       <Slider
@@ -68,7 +74,6 @@ function ChartApp() {
 
       <header className="App-header">
         <div>
-          {array.map(
             <Chart
               width={'80vw'}
               height={'100vh'}
@@ -78,7 +83,6 @@ function ChartApp() {
                 colors: ['#FFCC00'],
               }}
             />,
-          )}
         </div>
       </header>
     </div>
